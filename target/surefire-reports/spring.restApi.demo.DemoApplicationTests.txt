@@ -1,0 +1,7 @@
+-------------------------------------------------------------------------------
+Test set: spring.restApi.demo.DemoApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.281 sec <<< FAILURE! - in spring.restApi.demo.DemoApplicationTests
+initializationError(spring.restApi.demo.DemoApplicationTests)  Time elapsed: 0.005 sec  <<< ERROR!
+java.lang.IllegalStateException: Unable to find a @SpringBootConfiguration, you need to use @ContextConfiguration or @SpringBootTest(classes=...) with your test
+

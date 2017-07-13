@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymleaf.org">
+<head>
+<title>Top Domain</title>
+<link href="/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/jquery-3.2.1.min.js"></script>
+<script type="text/javascript">
+	
+	
+	function showSuscriptions() {
+		var headers=['Id','Email','MessageType'];
+		url = '/api/subscriptions/',
+		makeAjaxCall(url,'GET',headers,'show1');
+	}
+	
+	function createSubscription() {
+		$('#error').hide()
+		dataVal={'email':$('#emailCreate').val(),'messageTypeList':$('#messageTypeCreateSelect').val()};
+		url = '/api/subscriptions/' ;		
+		makeAjaxCall(url,'POST','','',dataVal);
+		showSuscriptions();
+		populateSubscritionIdSelect();
+	}
+	function updateSubscription() {
+		$('#error').hide()
+		dataVal={'email':$('#emailUpdate').val(),'messageTypeList':$('#messageTypeUpdateSelect').val()};
+		url = '/api/subscriptions/'+$('#subscritionIdSelect').val() ;		
+		makeAjaxCall(url,'PUT','','',dataVal);
+		showSuscriptions();
+		populateSubscritionIdSelect();
+	}
+		
+	function showMessages() {
+		var headers=['Id','Message','MessageType Id','MessageType Type'];
+		url = '/api/messages/',
+		makeAjaxCall(url,'GET',headers,'show2');
+	}
+	function createMessage() {
+		$('#error').hide()
+		dataVal={'messageTypeId':$('#messageTypeMessageSelect').val(),'message':$('#textarea').val()};
+		url = '/api/messages/' ;		
+		makeAjaxCall(url,'POST','','',dataVal);
+		showMessages();
+		
+	}
+	
+	
+	function populateMessageTypeSelect(elementId){
+		populateSelect('/api/messageTypes/',['id','type'],elementId);
+	}
+	function populateSubscritionIdSelect(){
+		populateSelect('/api/subscriptions/',['id','email'],'subscritionIdSelect');
+	}
+	
+
+	function makeAjaxCall(urlStr,reqMethod,tableHeaders,displayElement,dataVal) {
+			
+			$.ajax({
+				async: false,
+				url : urlStr,
+				type :reqMethod,
+				dataType : 'json',
+				data :  JSON.stringify(dataVal),
+				headers: { 
+			        'Accept': 'application/json',
+			        'Content-Type': 'application/json' 
+			    },
+				success : function(data, status, xhttp) {
+					createView(data,tableHeaders,displayElement);
+				},
+				error : function(xhr, status, error) {
+					
+					if(xhr.status.toString()[0]!='2'){
+						$('#errorD').text(xhr.status+'   '+xhr.responseText);
+						$('#error').show()
+						$("html,body").scrollTop(0);
+					}
+				}
+			});
+
+		}
+		
+	function createView(data,headers,displayElement) {	
+			content = '<table class="table table-bordered table-hover table-striped" > ';
+			content += '<thead><tr>';
+			$.each(headers, function(o, head) {
+				content += '<th>' + head + '</th>';
+				
+			});
+			content += '</tr></thead>';
+			$.each(data, function(i, product) {
+				
+				content += '<tr>';
+				$.each(product, function(o, field) {
+					if(field!=null && field.constructor===Array){
+						var contentMessageType='<ul>';
+						$.each(field, function(t, mType) {
+							contentMessageType+='<li style="float: left;display: inline-block; padding-left: 20px !important;">'+mType+'</li>';
+						});
+						contentMessageType+='</ul>';
+						content += '<td>' + contentMessageType + '</td>';
+					}
+					else{
+						content += '<td>' + field + '</td>';
+					}
+				});
+				content += '</tr>';
+			});
+			content += '</table>';
+			
+			$('#'+displayElement).html(content);
+		}
+function populateSelect(urlStr,fieldList,displayElement){
+		
+		$.ajax({
+			url : urlStr,
+			type :'GET',
+			dataType : 'json',
+			success : function(data, status, xhttp) {
+				content='';
+				
+				$.each(data, function(i, product) {
+					content+=' <option value="'+product[fieldList[0]]+'">'+product[fieldList[1]]+'</option>'
+				});
+				
+				$('#'+displayElement).html(content);
+			},
+			error : function() {
+				alert('error');//error condition code
+			}
+		});
+	}
+	$(function(){
+		showSuscriptions();
+       	populateMessageTypeSelect('messageTypeCreateSelect');
+       	populateMessageTypeSelect('messageTypeUpdateSelect');
+       	populateMessageTypeSelect('messageTypeMessageSelect');       	
+       	
+       	populateSubscritionIdSelect();
+       	
+	});
+	
+</script>
+</head>
+<body>
+	<h1 th:text="${pageTitle}">Title</h1>
+	<div class="container">
+		<div class="row">
+			<div class="col-sm-12">
+				
+				<div id="error" class="alert alert-danger" style="display: none">
+				  <strong>Error!</strong> 
+				  <div id="errorD"></div>
+				</div>
+				
+			</div>
+		</div>
+		<div class="row">
+			<div class="panel panel-default panel-primary">
+				<div class="panel-heading ">Products</div>
+				<div class="panel-body">
+	
+					<div class="row">
+						<div class="col-sm-12" >
+							<div id="show1"></div>
+						</div>
+					</div>
+	
+				</div>
+			</div>
+		</div>
+		<div class="row">
+
+			<div class="panel panel-default panel-primary">
+				<div class="panel-heading ">Create Subscription</div>
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-6" >
+	
+							<div class="row">
+								<div class="col-sm-4">
+									<div class="form-group">
+										<label for="emailCreate">Email</label> 
+										<input type="email" id="emailCreate" name="emailCreate">
+									</div>
+									<input type="button" class="btn btn-primary" value="Create" onclick="createSubscription()" />
+	
+								</div>
+								<div class="col-sm-4">
+									<div class="form-group">
+										<label for="messageTypeCreateSelect">Select MessageType</label> 
+										<select	class="form-control" name="messageTypeCreateSelect" id="messageTypeCreateSelect" multiple="multiple">
+										</select>
+									</div>
+	
+								</div>
+								
+							</div>
+	
+						</div>
+						
+					</div>
+				</div>
+			</div>
+		<!-- Panel End -->
+		</div>
+		
+		<div class="row">
+			<div class="panel panel-default panel-primary">
+				<div class="panel-heading ">Update Subscription</div>
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-6" >
+	
+							<div class="row">
+								<div class="col-sm-4">
+									<div class="form-group">
+										<label for="messageIdSelect">Select Subscription Id</label> 
+										<select	class="form-control" name="subscritionIdSelect" id="subscritionIdSelect">
+										</select>
+									</div>
+									<input type="button" class="btn btn-primary" value="Update" onclick="updateSubscription()" />
+									
+								</div>
+								<div class="col-sm-4">
+									<div class="form-group">
+										<label for="emailUpdate">Email</label> 
+										<input type="email" id="emailUpdate" name="emailUpdate">
+									</div>
+									
+								</div>
+								<div class="col-sm-4">
+									<div class="form-group">
+										<label for="messageTypeUpdateSelect">Select MessageType</label> 
+										<select	class="form-control" name="messageTypeUpdateSelect" id="messageTypeUpdateSelect" multiple="multiple">
+										</select>
+									</div>
+	
+								</div>
+								
+							</div>
+	
+						</div>
+						
+					</div>
+				</div>
+			</div>
+		<!-- Panel End -->
+		</div>
+		
+		<div class="row">
+			<div class="panel panel-default panel-primary">
+				<div class="panel-heading ">Messages</div>
+				<div class="panel-body">
+	
+					<div class="row">
+						<div class="col-sm-12" >
+							<div id="show2"></div>
+						</div>
+					</div>
+	
+				</div>
+			</div>
+		</div>
+		
+		<div class="row">
+			<div class="panel panel-default panel-primary">
+				<div class="panel-heading ">Create message</div>
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-6" >
+	
+							<div class="row">
+								<div class="col-sm-4">
+									<div class="form-group">
+										<label for="messageTypeMessageSelect">Select MessageType</label> 
+										<select	class="form-control" name="messageTypeMessageSelect" id="messageTypeMessageSelect" >
+										</select>
+									</div>
+									<input type="button" class="btn btn-primary" value="Create" onclick="createMessage()" />
+	
+								</div>
+								<div class="col-sm-8">
+									<div class="form-group">
+										<label for="textarea">Message</label> 
+										<textarea class="form-control" name="textarea" id="textarea" ></textarea>
+									</div>
+	
+								</div>
+								
+							</div>
+	
+						</div>
+						
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- Panel End -->
+		
+		
+
+	</div>
+
+</body>
+</html>
